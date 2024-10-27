@@ -1,0 +1,13 @@
+takehome_wh:
+  outputs:
+    dev:
+      account: rm34151.ap-southeast-1
+      database: takehome_db
+      password: D@yo24juwa
+      role: 'takehome_role'
+      schema: takehome_schema
+      threads: 2
+      type: snowflake
+      user: footymcfoot
+      warehouse: takehome_wh
+  target: dev
