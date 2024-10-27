@@ -1,13 +1,15 @@
 takehome_wh:
   outputs:
     dev:
-      account: rm34151.ap-southeast-1
+      type: snowflake
+      warehouse: takehome_wh
       database: takehome_db
-      password: D@yo24juwa
-      role: 'takehome_role'
       schema: takehome_schema
       threads: 2
-      type: snowflake
-      user: footymcfoot
-      warehouse: takehome_wh
+
+      account: "{{ env_var('SNOWFLAKE_TAKEHOME_ACCOUNT') }}" 
+      password: "{{ env_var('SNOWFLAKE_TAKEHOME_PASSWORD') }}"
+      role: "{{ env_var('SNOWFLAKE_TAKEHOME_ROLE') }}"
+      user: "{{ env_var('SNOWFLAKE_TAKEHOME_USER') }}"
+      
   target: dev
