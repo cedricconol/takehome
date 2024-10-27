@@ -1,0 +1,1 @@
+select 'cedric' as applicant
