@@ -1,0 +1,56 @@
+version: 2
+
+sources:
+  - name: product
+    database: read_replica
+    schema: product
+    tables:
+      - name: device
+        description: Contains devices deployed to our customers.
+        columns:
+          - name: id
+            description: Unique identifier of the device.
+          - name: type
+            description: Type of device deployed.
+          - name: store_id
+            description: Foreign key to Store table which indicates which store the device was deployed.
+      
+      - name: store
+        description: Contains our customers' stores data.
+        columns:
+          - name: id
+            description: Unique identifer of the store.
+          - name: name
+            description: Name of the store.
+          - name: address
+            description: Address of the store.
+          - name: city
+            description: City location of the store.
+          - name: country
+            description: Country location of the store.
+          - name: created_at
+            description: Timestamp when the store was added to this table.
+          - name: typology
+            description: Type of device deployed in the store
+          - name: customer_id
+            description: Identifier of the customer who owns the store.
+      
+      - name: transactions
+        description: Contains all transactions made on the devices deployed in our customers' stores.
+        columns:
+          - name: id
+            description: Unique identifer of the transaction.
+          - name: device_id
+            description: Foreign key to Device table. Identifier of the deviced used in a transaction.
+          - name: product_name
+            description: Name of the product purchased in the transaction.
+          - name: product_sku
+            description: SKU of the product purchased in the transaction.
+          - name: amount
+            description: Total amount of the transaction in Euros.
+          - name: status
+            description: Status of the transaction.
+          - name: created_at
+            description: Timestamp when the transaction was recorded in the transactions table.
+          - name: happened_at
+            description: Timestamp when the transaction actually happened.

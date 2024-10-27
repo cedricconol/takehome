@@ -4,6 +4,7 @@
 # name or the intended use of these models
 name: 'takehome_wh'
 version: '1.0.0'
+config-version: 2
 
 # This setting configures which "profile" dbt uses for this project.
 profile: 'takehome_wh'
@@ -11,12 +12,10 @@ profile: 'takehome_wh'
 # These configurations specify where dbt should look for different types of files.
 # The `model-paths` config, for example, states that models in this project can be
 # found in the "models/" directory. You probably won't need to change these!
-model-paths: ["models"]
-analysis-paths: ["analyses"]
-test-paths: ["tests"]
-seed-paths: ["seeds"]
-macro-paths: ["macros"]
-snapshot-paths: ["snapshots"]
+model-paths:
+  - models
+test-paths:
+  - tests
 
 clean-targets:         # directories to be removed by `dbt clean`
   - "target"
@@ -31,10 +30,17 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 models:
   takehome_wh:
+    +schema: takehome_schema
     # Config indicated by + and applies to all files under models/example/
     staging:
       +materialized: view
       snowflake_warehouse: takehome_wh
-    marts:
+      +schema: staging
+    mart:
       +materialized: table
       snowflake_warehouse: takehome_wh
+      +schema: mart
+    reporting:
+      +materialized: table
+      snowflake_warehouse: takehome_wh
+      +schema: reporting
