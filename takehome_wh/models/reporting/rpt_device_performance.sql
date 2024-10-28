@@ -7,11 +7,11 @@ with
     -- logical CTEs
     final as (
         select
-            devices.* exclude dbt_updated_at,
             transactions.* exclude (dbt_updated_at),
+            devices.* exclude (dbt_updated_at, pk_device_id),
             {{ dbt.current_timestamp() }} as dbt_updated_at
-        from devices
-        left join transactions on devices.pk_device_id = transactions.device_id
+        from transactions
+        left join devices on devices.pk_device_id = transactions.device_id
     )
 
 select *

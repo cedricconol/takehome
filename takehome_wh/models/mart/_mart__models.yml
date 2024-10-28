@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: dim_devices
+    description: Contains devices and the store information which uses the device.
+    columns:
+      - name: pk_device_id
+        description: Unique identifier of the device.
+        data_tests:
+          - unique
+          - not_null
+      - name: device_type
+        description: Type of device deployed.
+      - name: store_id
+        description: Foreign key to Store table which indicates which store the device was deployed.
+      - name: store_name
+        description: Name of the store.
+      - name: store_address
+        description: Address of the store.
+      - name: store_city
+        description: City location of the store.
+      - name: store_country
+        description: Country location of the store.
+      - name: store_typology
+        description: Category of store
+      - name: customer_id
+        description: Identifier of the customer who owns the store.
+      - name: store_created_at
+        description: Timestamp when the store was added to this table.
+      - name: dbt_updated_at
+        description: '{{ doc("dbt_updated_at")}}'
+
+  - name: fct_transactions
+    description: Contains all transactions made on the devices deployed in our customers' stores.
+    columns:
+      - name: pk_transaction_id
+        description: Unique identifer of the transaction.
+        data_tests:
+          - unique
+          - not_null
+      - name: device_id
+        description: Foreign key to Device table. Identifier of the deviced used in a transaction.
+      - name: transaction_product_name
+        description: Name of the product purchased in the transaction.
+      - name: transaction_product_sku
+        description: SKU of the product purchased in the transaction.
+      - name: transaction_amount_eur
+        description: Total amount of the transaction in Euros.
+      - name: transaction_status
+        description: Status of the transaction.
+      - name: transaction_created_at
+        description: Timestamp when the transaction was recorded in the transactions table.
+      - name: transaction_happened_at
+        description: Timestamp when the transaction actually happened.
+      - name: dbt_updated_at
+        description: '{{ doc("dbt_updated_at")}}'

@@ -87,8 +87,8 @@ __Note: I've created a `docs` folder to hold common field docs. This is a reusab
 1. All fields are renamed to reflect its entity. eg `devices.type` is renamed to `devices.device_type`. FKs are exempted from this renaming rule.
 2. Primary keys, are renamed to `pk_{transaction}_id`
 3. `dbt_updated_at` is added to all models in this project to reflect the timestamp when the model was last ran.
-4. **Transactions table contain highly sensitive data such as `card_number` and `cvv` and it is not recommended to store such data in the warehouse due to high security risks and stringent compliance requirements (like PCI-DSS). Both are not used in any analysis, in case, needed in the future such as rewards and discounts use cases, best to encrypt data in-transit and at-rest.**
-5. There are 2 `product_name`s fields, per my EDA (see below), neither corresponds uniquely to SKU. This will result in possible modeling mistakes and confusing reports. **My assumption is that inventory are inputted by the customers and not by the product or ops team, regardless it is best to clarify with whoever is responsible for product names.**
+4. **Transactions table contain highly sensitive data such as `card_number` and `cvv`. It is not recommended to store such data in the warehouse due to high security risks and stringent compliance requirements (like PCI-DSS). Both are not used in any analysis, in case, needed in the future such as rewards and discounts use cases, best to encrypt data in-transit and at-rest.**
+5. There are 2 `product_name` fields, per my EDA (see below), neither corresponds uniquely to SKU. This will result in possible modeling mistakes and confusing reports. **My assumption is that inventory are inputted by the customers and not by the product or ops team, regardless it is best to clarify with whoever is responsible for product names.**
 6. Each transaction have one SKU so this means there's only one product per transaction. It will be a good idea to be able to know which transactions were purchased together.
 
 **Product Name EDA**
