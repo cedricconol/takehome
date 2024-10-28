@@ -14,6 +14,8 @@ profile: 'takehome_wh'
 # found in the "models/" directory. You probably won't need to change these!
 model-paths:
   - models
+analysis-paths:
+  - analyses
 test-paths:
   - tests
 

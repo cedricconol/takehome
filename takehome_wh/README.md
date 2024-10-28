@@ -1,6 +1,50 @@
-Notes:
-warehouse:
-1. setup wh
+# SellerX Takehome Challenge
+
+## Objective
+
+Create reporting model that can answer questions related to device efficiency and performance.
+
+## Steps:
+1. Setup Snowflake "read replica" database to hold Stores, Devices, Transactions data. This is to mimic real-world scenario where data team are given access to Ops and Product database. **Assumption: Product team is responsible for maintaining Stores, Devices, Transactions data and have set up a "Read Replica" database refreshed once a day in which data team can access and get data from.**
+2. Create Product schema in Read Replica DB with tables named Stores, Devices, Transactions respecitvely holding the data coming from Stores, Devices, Transactions excel files.
+3. Setup Snowflake warehouse with one database having separate schemas for staging, mart, reporting dbt models.
+4. Setup dbt-core with dbt-snowflake adapter.
+5. Create staging models reading from "read replica" database.
+6. Create fct, dim, and rpt models.
+7. Create SQL queries using the rpt model that can be used by analysts to answer the questions
+
+## Step by Step Details
+
+Each item above will be broken down into detailed steps below including assumptions, observations, and codes.
+
+### Step 1
+
+```sql
+use role accountadmin;
+create role takehome_role;
+
+grant usage on database read_replica to role takehome_role;
+grant usage on all schemas in database read_replica to role takehome_role;
+grant select on all tables in schema product to role takehome_role;
+grant select on future tables in schema product to role takehome_role;
+
+grant role takehome_role to user footymcfoot;
+
+use role takehome_role;
+
+create schema read_replica.product;
+
+```
+
+### Step 2
+
+Using Snowflake's Add Data via Staging feature, upload Stores, Devices, Transactions excel files and create separate tables in `read_replica.product` schema.
+
+### Step 3
+
+**Date Warehouse**
+
+```sql
 use role accountadmin;
 
 create warehouse takehome_wh with warehouse_size='x-small';
@@ -15,94 +59,67 @@ grant all on database takehome_db to role takehome_role;
 
 use role takehome_role;
 
-create schema takehome_db.takehome_schema;
+create schema takehome_db.takehome_schema_staging;
+create schema takehome_db.takehome_schema_mart;
+create schema takehome_db.takehome_schema_reporting;
 
-setup product db:
-use role accountadmin;
+```
 
-grant usage on database read_replica to role takehome_role;
-grant usage on all schemas in database read_replica to role takehome_role;
-grant select on all tables in schema product to role takehome_role;
-grant select on future tables in schema product to role takehome_role;
+### Step 4
+I've used my `dbt - snowflake` (`dbt-core` + `dbt-snowflake`) environment I already have in my personal machine. Although best practice and highly recommended for maximum compatibility is to use Dockerized container with Python 3 (slim should do in this challenge) environment, `dbt-core`, and `dbt-snowflake` packages using a Dockerfile.
 
-show grants on schema product;
+Limitation: I dont have enough computing power to run a Docker image.
 
-use role takehome_role;
+Pls refer to `profiles.yml` and `dbt_project.yml` for configurations used in this project.
 
-select * from read_replica.product.device;
+__Note: I only setup a single profile, dev, in this challenge. When deployed, needs a production profile too.__ 
 
-dbt:
-1. Setup dev env only
+### Step 5
 
-2. create a product/ops "read replica" database to store device, store, transaction tables. this is to mimic
-real-world scenario where data team is given access to product and ops data via data read replication. The
-assumption is that the replica refreshes at the start of each day 00:00 UTC - giving data team access to D-1
-data which should be enough for analysis and reporting purposes.
+Create staging models, that's 1:1 with the data source.
 
-EDA on product_name duplicated field in transactions table:
+- `stg_product__devices`
+- `stg_product__stores`
+- `stg_product__transactions`
+
+__Note: I've created a `docs` folder to hold common field docs. This is a reusable doc used in definitions in yml files.__
+
+1. All fields are renamed to reflect its entity. eg `devices.type` is renamed to `devices.device_type`. FKs are exempted from this renaming rule.
+2. Primary keys, are renamed to `pk_{transaction}_id`
+3. `dbt_updated_at` is added to all models in this project to reflect the timestamp when the model was last ran.
+4. **Transactions table contain highly sensitive data such as `card_number` and `cvv` and it is not recommended to store such data in the warehouse due to high security risks and stringent compliance requirements (like PCI-DSS). Both are not used in any analysis, in case, needed in the future such as rewards and discounts use cases, best to encrypt data in-transit and at-rest.**
+5. There are 2 `product_name`s fields, per my EDA (see below), neither corresponds uniquely to SKU. This will result in possible modeling mistakes and confusing reports. **My assumption is that inventory are inputted by the customers and not by the product or ops team, regardless it is best to clarify with whoever is responsible for product names.**
+6. Each transaction have one SKU so this means there's only one product per transaction. It will be a good idea to be able to know which transactions were purchased together.
+
+**Product Name EDA**
+
+```sql
 with base as (
 select distinct
-product_name, product_sku
+product_name, product_sku, device_id
 from read_replica.product.transactions)
-select * from base group by 1,2 having count(*)>1
+select device_id, product_sku from base group by 1,2 having count(*)>1
 ;
+```
 
-security:
-1. card numbers and cvv should be encrypted in product database
+### Step 6
 
-assume one product per transaction
+Create `dim_devices` which contains all devices and store information where the device is deployed.
 
-product names is not 1:1 with skus
+Create `fct_transactions` where one row corresponds to one transaction.
 
-rpt only accepted transactions
+Create `rpt_device_performance` based on transactions. This includes all transactions regardless of their status. In a study of efficiency, it is also worth analyzing how often transactions fail as this affect adoption.
 
-Analysis
-with store_performance  as (
-select store_id, store_name, sum(transaction_amount_eur) as total_transaction_amount_eur from takehome_schema_reporting.rpt_device_performance
-group by 1,2)
-select * from store_performance order by total_transaction_amount_eur desc limit 10;
+### Step 7
 
-with product_performance  as (
-select transaction_product_sku, customer_id, count(*) as number_of_transactions from takehome_schema_reporting.rpt_device_performance
-group by 1,2)
-select * from product_performance order by number_of_transactions desc limit 10;
+Create SQL queries to answer challenge questions. Pls refer to `analyses` folder.
 
-select store_typology, store_country, avg(transaction_amount_eur) as avg_transaction_amount_eur from takehome_schema_reporting.rpt_device_performance
-group by 1,2;
+- Question 1: Assumption is "transacted" means successful transactions. So only 'accepted' transactions makes sense in this question.
 
-with device_performance as (
-select device_type, count(*) as number_of_transactions from takehome_schema_reporting.rpt_device_performance
-group by 1)
-select device_type, number_of_transactions, 100*ratio_to_report(number_of_transactions) over() from device_performance;
+- Question 2: This analysis is best done using a pivot table in the BI tool and or any spreadsheet tool. This is so the analyst can deep dive which products fail often as this may be an opportunity to improve the devices. Therefore, `customer_id`, and `transaction_status` are included.
 
+- Question 3: Same assumption as 1 to only include accepted transactions
 
-with first_five as (
-select *, count(*) over (partition by store_id) as total_transactions_store from takehome_schema_reporting.rpt_device_performance
-qualify row_number() over (partition by store_id order by transaction_happened_at) <= 5),
-transaction_days as (
-select
-    store_id,
-    min(transaction_happened_at) over (partition by store_id) as first_transaction_ts,
-    max(transaction_happened_at) over (partition by store_id) as last_transaction_ts,
-    datediff(day, first_transaction_ts, last_transaction_ts) as first_five_transactions_days
-from first_five
-where total_transactions_store >=5
-)
-select avg(first_five_transactions_days) from transaction_days
-;
+- Question 4: Another question that is better answered by isolating accepted transactions to see which devices fail often.
 
-Welcome to your new dbt project!
-
-### Using the starter project
-
-Try running the following commands:
-- dbt run
-- dbt test
-
-
-### Resources:
-- Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)
-- Check out [Discourse](https://discourse.getdbt.com/) for commonly asked questions and answers
-- Join the [chat](https://community.getdbt.com/) on Slack for live discussions and support
-- Find [dbt events](https://events.getdbt.com) near you
-- Check out [the blog](https://blog.getdbt.com/) for the latest news on dbt's development and best practices
+- Question 5: Analysis is used to measure adoption, therefore, it is helpful to look at the entire picture including all transactions regardless of status. Failed transactions are also sign of adoption and should be considered an opportunity for improvement. **This analysis usually results in deep diving into the dataset and is best done in a BI tool or spreadsheet. The output of the query prepares this deep dive for the analyst to perform hence grouoped by Stores.**
