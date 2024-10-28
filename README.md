@@ -4,6 +4,9 @@
 
 Create reporting model that can answer questions related to device efficiency and performance.
 
+## Data model design
+![alt text](image.png)
+
 ## Steps:
 1. Setup Snowflake "read replica" database to hold Stores, Devices, Transactions data. This is to mimic real-world scenario where data team are given access to Ops and Product database. **Assumption: Product team is responsible for maintaining Stores, Devices, Transactions data and have set up a "Read Replica" database refreshed once a day in which data team can access and get data from.**
 2. Create Product schema in Read Replica DB with tables named Stores, Devices, Transactions respecitvely holding the data coming from Stores, Devices, Transactions excel files.
