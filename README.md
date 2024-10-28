@@ -20,7 +20,7 @@ Create reporting model that can answer questions related to device efficiency an
 
 Each item above will be broken down into detailed steps below including assumptions, observations, and codes.
 
-### Step 1
+### Step 1: Read Replica DB
 
 ```sql
 use role accountadmin;
@@ -39,13 +39,11 @@ create schema read_replica.product;
 
 ```
 
-### Step 2
+### Step 2: Read Replica Product Schema
 
 Using Snowflake's Add Data via Staging feature, upload Stores, Devices, Transactions excel files and create separate tables in `read_replica.product` schema.
 
-### Step 3
-
-**Date Warehouse**
+### Step 3: Data Warehouse
 
 ```sql
 use role accountadmin;
@@ -68,7 +66,7 @@ create schema takehome_db.takehome_schema_reporting;
 
 ```
 
-### Step 4
+### Step 4: dbt setup
 I've used my `dbt - snowflake` (`dbt-core` + `dbt-snowflake`) environment I already have in my personal machine. Although best practice and highly recommended for maximum compatibility is to use Dockerized container with Python 3 (slim should do in this challenge) environment, `dbt-core`, and `dbt-snowflake` packages using a Dockerfile.
 
 Limitation: I dont have enough computing power to run a Docker image.
@@ -77,7 +75,7 @@ Pls refer to `profiles.yml` and `dbt_project.yml` for configurations used in thi
 
 __Note: I only setup a single profile, dev, in this challenge. When deployed, needs a production profile too.__ 
 
-### Step 5
+### Step 5: Staging Models
 
 Create staging models, that's 1:1 with the data source.
 
@@ -105,7 +103,7 @@ select device_id, product_sku from base group by 1,2 having count(*)>1
 ;
 ```
 
-### Step 6
+### Step 6: Mart models
 
 Create `dim_devices` which contains all devices and store information where the device is deployed.
 
@@ -113,7 +111,7 @@ Create `fct_transactions` where one row corresponds to one transaction.
 
 Create `rpt_device_performance` based on transactions. This includes all transactions regardless of their status. In a study of efficiency, it is also worth analyzing how often transactions fail as this affect adoption.
 
-### Step 7
+### Step 7: Answer Challenge Questions
 
 Create SQL queries to answer challenge questions. Pls refer to `analyses` folder.
 
