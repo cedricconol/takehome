@@ -4,6 +4,10 @@
 
 Create reporting model that can answer questions related to device efficiency and performance.
 
+## How to run the project
+1. Build the image: `docker build -t dbt-python-snowflake-env .`
+2. Run in interactive mode: `docker run -it --env-file .env -v $(pwd):/usr/src/app -v ~/.dbt:/root/.dbt dbt-python-snowflake-env /bin/bash `
+
 ## Data model design
 ![alt text](image.png)
 
@@ -67,9 +71,11 @@ create schema takehome_db.takehome_schema_reporting;
 ```
 
 ### Step 4: dbt setup
-I've used my `dbt - snowflake` (`dbt-core` + `dbt-snowflake`) environment I already have in my personal machine. Although best practice and highly recommended for maximum compatibility is to use Dockerized container with Python 3 (slim should do in this challenge) environment, `dbt-core`, and `dbt-snowflake` packages using a Dockerfile.
 
-Limitation: I dont have enough computing power to run a Docker image.
+See Dockerfile for more info
+
+1. Build the image: `docker build -t dbt-python-snowflake-env .`
+2. Run in interactive mode: `docker run -it --env-file .env -v $(pwd):/usr/src/app -v ~/.dbt:/root/.dbt dbt-python-snowflake-env /bin/bash `
 
 Pls refer to `profiles.yml` and `dbt_project.yml` for configurations used in this project.
 
