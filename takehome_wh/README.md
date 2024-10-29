@@ -107,6 +107,7 @@ select device_id, product_sku from base group by 1,2 having count(*)>1
 Create `dim_devices` which contains all devices and store information where the device is deployed.
 
 Create `fct_transactions` where one row corresponds to one transaction.
+**Transactions, just like events data, tend to scale faster than other tables. Therefore, I've made this model incremental to reduce runtime and possible warehouse costs.**
 
 Create `rpt_device_performance` based on transactions. This includes all transactions regardless of their status. In a study of efficiency, it is also worth analyzing how often transactions fail as this affect adoption.
 

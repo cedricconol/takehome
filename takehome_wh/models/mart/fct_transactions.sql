@@ -1,6 +1,23 @@
+{{
+    config(
+        materialized='incremental',
+        unique_key='pk_transaction_id'
+    )
+}}
+
 with
     -- import CTEs
-    transactions as (select * from {{ ref('stg_product__transactions') }}),
+    transactions as (
+        select * 
+        from {{ ref('stg_product__transactions') }}
+
+        {% if is_incremental() %}
+            where transaction_created_at >= (
+                select coalesce(max(transaction_created_at), current_timestamp)
+                from {{ this }}
+            )
+        {% endif %}
+    ),
 
     -- logical CTEs
     final as (
